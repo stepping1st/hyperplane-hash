@@ -107,9 +107,10 @@ public final class Op {
     }
 
     /**
-     * shift the data by the center & find the max l2-norm to the center.
+     * shift the data by the center and find the max l2-norm to the center.
      *
      * @param data input vector
+     * @return normalized data
      */
     public static double[][] normalize(final double[][] data) {
         int dim = dim(data);

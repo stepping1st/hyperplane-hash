@@ -81,7 +81,7 @@ public class HashBucket implements Serializable {
                                     final int limit,
                                     final IntConsumer consumer) {
         Long2IntMap candidate = new Long2IntOpenHashMap();
-        candidate.defaultReturnValue('\0');
+        candidate.defaultReturnValue(-1);
         for (int j = 0; j < l; ++j) {
             int hashcode32 = qcode[j] & mask;
             IntList bucket = getOrEmpty(buckets[j], hashcode32);
@@ -91,7 +91,7 @@ public class HashBucket implements Serializable {
             }
             for (int key : bucket) {
                 int cnt = candidate.get(key);
-                if (cnt == '\0') {
+                if (cnt == -1) {
                     consumer.accept(key);
                     cnt = 0;
                 }

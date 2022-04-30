@@ -82,7 +82,7 @@ public class RQALSH implements Serializable {
      * @param limit     candidates limit
      * @param R         limited search range.
      *                  if it finds a candidate with
-     *                  dist(hash(query) - hash(data)) < range,
+     *                  {@literal dist(hash(query) - hash(data)) < range},
      *                  the search is stopped.
      * @param sampledim sample dimension
      * @param query     query object

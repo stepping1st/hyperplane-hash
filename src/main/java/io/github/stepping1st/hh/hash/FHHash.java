@@ -125,35 +125,35 @@ public class FHHash implements Hash<double[][], FHHash.Transform, IdxVal[]> {
         private final double M;
 
         /**
-         * l2-norm of sample data.
+         * @return l2-norm of sample data.
          */
         public final double[] norm() {
             return norm;
         }
 
         /**
-         * centroid of sample data.
+         * @return centroid of sample data.
          */
         public final double[] centroid() {
             return centroid;
         }
 
         /**
-         * sample data.
+         * @return sample data.
          */
         public final IdxVal[][] samples() {
             return samples;
         }
 
         /**
-         * distance of sample data.
+         * @return distance of sample data.
          */
         public final IdxVal[] dist() {
             return dist;
         }
 
         /**
-         * max l2-norm-sqr.
+         * @return max l2-norm-sqr.
          */
         @SuppressWarnings("checkstyle:MethodName")
         public final double M() {
