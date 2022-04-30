@@ -68,7 +68,7 @@ public class RunHash {
     }
 }
 ```
-[Check the examples](src/test/java/org/github/stepping1st/hh/RunExample.java)
+[Check the examples](src/test/java/io/github/stepping1st/hh/RunExample.java)
 
 ## Reference
 source code is originally based on https://github.com/HuangQiang/P2HNNS
