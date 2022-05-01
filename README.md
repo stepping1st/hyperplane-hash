@@ -28,8 +28,8 @@ Using maven:
 import org.apache.commons.math.random.JDKRandomGenerator;
 import org.apache.commons.math.random.RandomData;
 import org.apache.commons.math.random.RandomDataImpl;
-import org.github.stepping1st.hh.hash.BHHash;
-import org.github.stepping1st.hh.search.HashSearch;
+import io.github.stepping1st.hh.hash.BHHash;
+import io.github.stepping1st.hh.search.HashSearch;
 
 import java.util.List;
 
