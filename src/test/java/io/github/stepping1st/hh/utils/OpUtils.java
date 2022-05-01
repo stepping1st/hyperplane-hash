@@ -163,6 +163,12 @@ public class OpUtils {
         return objects;
     }
 
+    public static <T> T[] concat(T[] arr1, T[] arr2) {
+        T[] result = Arrays.copyOf(arr1, arr1.length + arr2.length);
+        System.arraycopy(arr2, 0, result, arr1.length, arr2.length);
+        return result;
+    }
+
     public interface ExceptionConsumer<T> {
         void accept(T t) throws Exception;
     }

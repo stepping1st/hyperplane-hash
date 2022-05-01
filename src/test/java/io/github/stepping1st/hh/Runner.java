@@ -1,6 +1,7 @@
 package io.github.stepping1st.hh;
 
 
+import io.github.stepping1st.hh.search.Search;
 import io.github.stepping1st.hh.utils.IOUtils;
 import org.apache.commons.math.random.JDKRandomGenerator;
 import org.apache.commons.math.random.RandomData;
@@ -29,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 import static io.github.stepping1st.hh.utils.OpUtils.doubleArray;
 import static io.github.stepping1st.hh.utils.OpUtils.range;
@@ -96,77 +98,109 @@ public class Runner {
         RandomData rd = new RandomDataImpl(rg);
 
         if (run.equals("BH")) {
-            BHHash hash = new BHHash(dim, prop.singleHasher(), prop.tables(), rd);
-            HashBucket bucket = new HashBucket(data.length, prop.tables());
-            HashSearch search = new HashSearch(hash, data, bucket);
             return evaluate(map(queries, new Function<double[], Query>() {
                 @Override
                 public Query apply(double[] query) {
                     return new Query(query, data, prop.topK(), prop.limit(), Dist.ABS_DOT);
                 }
-            }), search::nns, prop);
+            }), new Supplier<Search<Query>>() {
+                @Override
+                public Search<Query> get() {
+                    BHHash hash = new BHHash(dim, prop.singleHasher(), prop.tables(), rd);
+                    HashBucket bucket = new HashBucket(data.length, prop.tables());
+                    return new HashSearch(hash, data, bucket);
+                }
+            }, prop);
         }
         if (run.equals("MH")) {
-            MHHash hash = new MHHash(dim, prop.singleHasher(), prop.tables(), prop.M(), rd);
-            HashBucket bucket = new HashBucket(data.length, prop.tables());
-            HashSearch search = new HashSearch(hash, data, bucket);
             return evaluate(map(queries, new Function<double[], Query>() {
                 @Override
                 public Query apply(double[] query) {
                     return new Query(query, data, prop.topK(), prop.limit(), Dist.ABS_DOT);
                 }
-            }), search::nns, prop);
+            }), new Supplier<Search<Query>>() {
+                @Override
+                public Search<Query> get() {
+                    MHHash hash = new MHHash(dim, prop.singleHasher(), prop.tables(), prop.M(), rd);
+                    HashBucket bucket = new HashBucket(data.length, prop.tables());
+                    return new HashSearch(hash, data, bucket);
+                }
+            }, prop);
         }
         if (run.equals("EH")) {
-            EHHash hash = new EHHash(dim, prop.singleHasher(), prop.tables(), rd);
-            HashBucket bucket = new HashBucket(data.length, prop.tables());
-            HashSearch search = new HashSearch(hash, data, bucket);
             return evaluate(map(queries, new Function<double[], Query>() {
                 @Override
                 public Query apply(double[] query) {
                     return new Query(query, data, prop.topK(), prop.limit(), Dist.ABS_DOT);
                 }
-            }), search::nns, prop);
+            }), new Supplier<Search<Query>>() {
+                @Override
+                public Search<Query> get() {
+                    EHHash hash = new EHHash(dim, prop.singleHasher(), prop.tables(), rd);
+                    HashBucket bucket = new HashBucket(data.length, prop.tables());
+                    return new HashSearch(hash, data, bucket);
+                }
+            }, prop);
         }
         if (run.equals("NH")) {
-            NHHash hash = new NHHash(dim, prop.singleHasher(), prop.s(), prop.w(), rd);
-            NHSearch search = new NHSearch(hash, prop.singleHasher(), data);
             return evaluate(map(queries, new Function<double[], Query>() {
                 @Override
                 public Query apply(double[] query) {
                     return new Query(query, data, prop.topK(), prop.limit(), Dist.ABS_DOT);
                 }
-            }), search::nns, prop);
+            }), new Supplier<Search<Query>>() {
+                @Override
+                public Search<Query> get() {
+                    NHHash hash = new NHHash(dim, prop.singleHasher(), prop.s(), prop.w(), rd);
+                    return new NHSearch(hash, prop.singleHasher(), data);
+                }
+            }, prop);
         }
         if (run.equals("FH")) {
-            FHHash hash = new FHHash(dim, prop.s(), rd);
-            FHSearch search = new FHSearch(hash, prop.b(), prop.tables(), data, rd);
             return evaluate(map(queries, new Function<double[], FHQuery>() {
                 @Override
                 public FHQuery apply(double[] query) {
                     return new FHQuery(query, data, prop.topK(), prop.limit(), prop.separationThreshold(), Dist.ABS_DOT);
                 }
-            }), search::nns, prop);
+            }), new Supplier<Search<FHQuery>>() {
+                @Override
+                public Search<FHQuery> get() {
+                    FHHash hash = new FHHash(dim, prop.s(), rd);
+                    return new FHSearch(hash, prop.b(), prop.tables(), data, rd);
+                }
+            }, prop);
         }
         return Collections.emptyList();
     }
 
     private static <T extends Query> List<Row<Object>> evaluate(List<T> queries,
-                                                                Function<T, List<IdxVal>> search,
+                                                                Supplier<Search<T>> supplier,
                                                                 SearchProperties prop) throws IOException {
+        System.gc();
+        long indexStart = System.currentTimeMillis();
+        long prevIndexMemory = usedMemory();
+        Search<T> searcher = supplier.get();
+        long indexDuration = System.currentTimeMillis() - indexStart;
+        long indexUsedMemory = usedMemory() - prevIndexMemory;
+
         List<Row<Object>> metas = new ArrayList<>();
         for (int i = 0; i < queries.size(); i++) {
             T query = queries.get(i);
-            long start = System.currentTimeMillis();
-            List<IdxVal> found = search.apply(query);
-            long duration = System.currentTimeMillis() - start;
+            long searchStart = System.currentTimeMillis();
+            long prevSearchMemory = usedMemory();
+            List<IdxVal> found = searcher.nns(query);
+            long searchDuration = System.currentTimeMillis() - searchStart;
+            long searchUsedMemory = usedMemory() - prevSearchMemory;
 
             TrueSet trueSet = TrueSet.of(query.copy(Dist.valueOf(prop.evalDist())));
             Row<Object> meta = new Row<>();
             meta.put("run", prop.run());
             meta.put("no", i);
-            meta.put("duration", duration);
             meta.putAll(metric(trueSet, found));
+            meta.put("search_duration", searchDuration);
+            meta.put("index_duration", indexDuration);
+            meta.put("index_used_memory", indexUsedMemory);
+            meta.put("search_used_memory", searchUsedMemory);
             LOGGER.info(String.valueOf(meta));
             meta.put("query", query.query());
             metas.add(meta);
@@ -198,8 +232,8 @@ public class Runner {
         }
         Row<Object> metric = new Row<>();
         metric.put("matched", (int) matched);
-        metric.put("precision", matched / query.limit());
         metric.put("recall", matched / query.top());
+        metric.put("precision", matched / query.limit());
         metric.put("true_dist_mean", trueSum / result.size());
         metric.put("search_dist_mean", searchSum / result.size());
         return metric;
@@ -251,6 +285,11 @@ public class Runner {
         data = prop.norm() ? Op.normalize(data) : data;
         data = prop.extend() ? Op.concat(data, Op.fill(data.length, 1)) : data;
         return data;
+    }
+
+    private static long usedMemory() {
+        Runtime runtime = Runtime.getRuntime();
+        return runtime.totalMemory() - runtime.freeMemory();
     }
 
 }
