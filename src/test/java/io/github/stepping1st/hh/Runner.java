@@ -215,6 +215,9 @@ public class Runner {
         double matched = 0;
         double searchSum = 0;
         double trueSum = 0;
+        double precisionSum = 0;
+        double searchGainSum = 0;
+        double trueGainSum = 0;
         double[][] data = query.data();
         Dist dist = query.dist();
         int last = Math.min(idxes.length - 1, query.top() - 1);
@@ -226,12 +229,19 @@ public class Runner {
             double searchDist = dist.distance(query.query(), data[pred.idx()]);
             searchSum += searchDist;
             trueSum += real.value();
+            searchGainSum = searchGainSum + gain(1 / searchDist, order + 2);
+            trueGainSum = trueGainSum + gain(1 / real.value(), order + 2);
             if (searchDist <= distMax) {
                 matched = matched + 1;
             }
+            precisionSum = precisionSum + (matched / (order + 1));
         }
         Row<Object> metric = new Row<>();
         metric.put("matched", (int) matched);
+        // Mean Average Precision
+        metric.put("MAP", precisionSum / query.top());
+        // Normalized Discounted Cumulative Gain(NDCG)
+        metric.put("NDCG", searchGainSum / trueGainSum);
         metric.put("recall", matched / query.top());
         metric.put("precision", matched / query.limit());
         metric.put("true_dist_mean", trueSum / result.size());
@@ -290,6 +300,12 @@ public class Runner {
     private static long usedMemory() {
         Runtime runtime = Runtime.getRuntime();
         return runtime.totalMemory() - runtime.freeMemory();
+    }
+
+    private static double gain(double weight, int rank) {
+        // log2(rank)
+        double logN = Math.log10(rank) / Math.log10(2);
+        return weight / logN;
     }
 
 }
