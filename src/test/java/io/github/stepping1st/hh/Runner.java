@@ -201,7 +201,9 @@ public class Runner {
             meta.put("index_duration", indexDuration);
             meta.put("index_used_memory", indexUsedMemory);
             meta.put("search_used_memory", searchUsedMemory);
+            meta.put("found_size", found.size());
             LOGGER.info(String.valueOf(meta));
+            meta.put("dim", query.data().length == 0 ? 0 : query.data()[0].length);
             meta.put("query", query.query());
             metas.add(meta);
             write(i, trueSet.slice(prop.topK()), prop, found);
@@ -223,18 +225,20 @@ public class Runner {
         int last = Math.min(idxes.length - 1, query.top() - 1);
         double distMax = -1 < last && last < idxes.length ?
                 dist.distance(query.query(), data[idxes[last].idx()]) : Double.NaN;
-        for (int order = 0; order < result.size(); order++) {
-            IdxVal pred = result.get(order);
+        for (int order = 0; order < query.top(); order++) {
+            IdxVal pred = order < result.size() ? result.get(order) : null;
+            double searchDist = pred == null ? Double.NaN : dist.distance(query.query(), data[pred.idx()]);
             IdxVal real = idxes[order];
-            double searchDist = dist.distance(query.query(), data[pred.idx()]);
-            searchSum += searchDist;
-            trueSum += real.value();
-            searchGainSum = searchGainSum + gain(1 / searchDist, order + 2);
-            trueGainSum = trueGainSum + gain(1 / real.value(), order + 2);
             if (searchDist <= distMax) {
                 matched = matched + 1;
             }
-            precisionSum = precisionSum + (matched / (order + 1));
+            if (!Double.isNaN(searchDist)) {
+                searchGainSum += gain(1 / searchDist, order + 2);
+                searchSum += searchDist;
+            }
+            trueSum += real.value();
+            trueGainSum += gain(1 / real.value(), order + 2);
+            precisionSum += (matched / (order + 1));
         }
         Row<Object> metric = new Row<>();
         metric.put("matched", (int) matched);
@@ -244,7 +248,7 @@ public class Runner {
         metric.put("NDCG", searchGainSum / trueGainSum);
         metric.put("recall", matched / query.top());
         metric.put("precision", matched / query.limit());
-        metric.put("true_dist_mean", trueSum / result.size());
+        metric.put("true_dist_mean", trueSum / query.top());
         metric.put("search_dist_mean", searchSum / result.size());
         return metric;
     }
