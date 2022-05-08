@@ -169,6 +169,16 @@ public class OpUtils {
         return result;
     }
 
+    public static Stream<String> floatToString(Stream<float[]> values) {
+        return values.map(arr -> {
+            StringJoiner joiner = new StringJoiner(",");
+            for (float v : arr) {
+                joiner.add(String.valueOf(v));
+            }
+            return joiner.toString();
+        });
+    }
+
     public interface ExceptionConsumer<T> {
         void accept(T t) throws Exception;
     }

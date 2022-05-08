@@ -4,17 +4,25 @@ package io.github.stepping1st.hh.utils;
 import io.github.stepping1st.hh.column.Row;
 
 import java.io.BufferedReader;
+import java.io.DataInputStream;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.io.Writer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 
 public class IOUtils {
@@ -100,12 +108,41 @@ public class IOUtils {
         }
     }
 
+    public static Stream<float[]> binToStream(String path, int n, int dim) throws Exception {
+        FileInputStream fis = new FileInputStream(path);
+        DataInputStream dis = new DataInputStream(fis);
+        return IntStream.range(0, n).mapToObj(
+                num -> {
+                    float[] values = new float[dim];
+                    try {
+                        for (int i = 0; i < dim; i++) {
+                            int intValue = dis.readInt();
+                            int reversed = Integer.reverseBytes(intValue);
+                            float v = Float.intBitsToFloat(reversed);
+                            values[i] = v;
+                        }
+                        return values;
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+        );
+    }
+
+    public static void writeGzip(String path, Stream<String> values)
+            throws IOException {
+        try (FileOutputStream output = new FileOutputStream(path)) {
+            Writer writer = new OutputStreamWriter(new GZIPOutputStream(output), StandardCharsets.UTF_8);
+            write(writer, values);
+        }
+    }
+
     public static void write(String path, Stream<String> stream) throws IOException {
         FileWriter writer = new FileWriter(path);
         write(writer, stream);
     }
 
-    public static void write(FileWriter writer, Stream<String> stream) throws IOException {
+    public static void write(Writer writer, Stream<String> stream) throws IOException {
         try {
             stream.forEach(OpUtils.wrap(l -> {
                 writer.append(l);
