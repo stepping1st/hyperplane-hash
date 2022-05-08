@@ -182,7 +182,7 @@ public class RQALSH implements Serializable {
             // step 2.1: scan left part of bucket
             int lpos = pos.leftpos[j], rpos = pos.rightpos[j];
             for (int cnt = 0; cnt < SCAN_SIZE; cnt++, lpos++) {
-                ldist = Float.MAX_VALUE;
+                ldist = Double.MAX_VALUE;
                 if (lpos < rpos) {
                     ldist = Math.abs(queryval - tables[start + lpos].value());
                 } else {
@@ -208,7 +208,7 @@ public class RQALSH implements Serializable {
 
             // step 2.2: scan right part of bucket
             for (int cnt = 0; cnt < SCAN_SIZE; cnt++, rpos--) {
-                rdist = Float.MAX_VALUE;
+                rdist = Double.MAX_VALUE;
                 if (lpos < rpos) {
                     rdist = Math.abs(queryval - tables[start + rpos].value());
                 } else {
@@ -275,7 +275,7 @@ public class RQALSH implements Serializable {
     private double calcHashValue(final int d, final int tid,
                                  final double last, final IdxVal[] data) {
         int start = tid * dim;
-        float val = 0.0f;
+        double val = 0.0D;
         for (int i = 0; i < d; ++i) {
             int idx = data[i].idx();
             val += a[start + idx] * data[i].value();
@@ -294,7 +294,7 @@ public class RQALSH implements Serializable {
     private double calcHashValue(final int d, final int tid,
                                  final IdxVal[] data) {
         int start = tid * dim;
-        float val = 0.0f;
+        double val = 0.0D;
         for (int i = 0; i < d; ++i) {
             int idx = data[i].idx();
             val += a[start + idx] * data[i].value();

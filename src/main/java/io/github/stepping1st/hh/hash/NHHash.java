@@ -113,7 +113,7 @@ public class NHHash implements Hash<double[][], int[][], int[]> {
 
         // calc the signature of sample_data
         for (int i = 0; i < m; ++i) {
-            float val = 0.0f;
+            double val = 0.0D;
             for (int j = 0; j < sample.length; ++j) {
                 int idx = sample[j].idx();
                 val += proja[i * nhdim + idx] * sample[j].value();
