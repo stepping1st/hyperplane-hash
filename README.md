@@ -22,7 +22,7 @@ This implementation follows the approach of point-to-hyperplane search to partit
   - NNS is useful in large-scale active learning with SVM, maximum margin clustering, and large-margin dimensionality reduction.
 
 ## Performance
-- BH and MH have been proved to outperform EH. [3](#ref3)
+- BH and MH have been proved to outperform EH. [2](#ref2)
 - If the data is normalized, BH and MH also show good enough performance.
 - NH and FH search faster than BH and MH, but require more computing power.
 
@@ -107,9 +107,6 @@ source code is originally based on https://github.com/HuangQiang/P2HNNS
   Time. ACM Transactions on Mathematical Software, 3(3):209–226, September 1977.
 
 #### ref2
-- Prateek Jain, Sudheendra Vijayanarasimhan, and Kristen Grauman. 2010. Hashing hyperplane queries to near points with applications to large-scale active learning. In NeurIPS.
-
-#### ref3
 - Prateek Jain, Sudheendra Vijayanarasimhan, and Kristen Grauman. 2010. Hashing
 hyperplane queries to near points with applications to large-scale active learning.
 In NeurIPS. 928–936.
