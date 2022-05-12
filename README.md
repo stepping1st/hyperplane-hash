@@ -13,16 +13,16 @@ This implementation follows the approach of point-to-hyperplane search to partit
 
 ## Why we need nearest neighbor search ?
 - Approximate near-neighbor search(NNS)
-  - For low-dimensional points, spatial decomposition and tree based search algorithms can provide the exact neighbors in sub-linear time. [1](####ref1)
+  - For low-dimensional points, spatial decomposition and tree based search algorithms can provide the exact neighbors in sub-linear time. [1](#ref1)
   - The higher the dimensional data, the more computing cost is required to search. Accordingly, a method for finding a point having a small euclidean distance within a linear time is required.
 
 - Margin-based active learning
   - [Active classifier learning](https://en.wikipedia.org/wiki/Active_learning_(machine_learning)) methods for pool-based selection
-    generally scan all database instances before selecting which to have labeled next. [2](####ref2)
+    generally scan all database instances before selecting which to have labeled next. [2](#ref2)
   - NNS is useful in large-scale active learning with SVM, maximum margin clustering, and large-margin dimensionality reduction.
 
 ## Performance
-- BH and MH have been proved to outperform EH. [3](####ref3)
+- BH and MH have been proved to outperform EH. [3](#ref3)
 - If the data is normalized, BH and MH also show good enough performance.
 - NH and FH search faster than BH and MH, but require more computing power.
 
